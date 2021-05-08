@@ -34,7 +34,7 @@ dclr = {1 : 'g',    # apical tuft
 
 ntrial = 1; tstop = -1; outparamf = voltpath = paramf = '';
 
-maxCount = 10
+maxCount = 4
 
 for i in range(len(sys.argv)):
   if sys.argv[i].endswith('.param'):
@@ -64,58 +64,95 @@ class L5VoltCanvas (FigureCanvas):
     self.G = gridspec.GridSpec(10,1)
     self.plot()
 
+# Comment in for heatmap
   def drawvolt (self, dvolt, fig, G, sz=8, ltextra=''):
-      count = 0
-      sumSignal = np.zeros(dvolt[1][1].shape)
-      for gid,it in dvolt.items():
-          # count = 0
-          ty = it[0]
-          if type(gid) != int: continue
-          if ty == "L5_pyramidal":
-              count += 1
-              if count > maxCount: continue
-              # if count not in [2,4]: continue
-              ax1 = fig.add_subplot(6,1,1)
-              if tstop != -1: ax1.set_xlim((0,tstop))
-              ax1.set_xlabel('Time (ms)');
-              # ax1.set_ylim(-8000,-2000)
-              ax1.set_ylim(-100,60)
-              ax1.set_ylabel('Voltage (mV)')
-              for i in range(1,6):
-                  ax = fig.add_subplot(6,1,i+1)
-                  lax = [ax]
-                  vtime = dvolt['vtime']
-                  volt = it[i]
-                  if i == 1:
-                      sumSignal += volt
-                  ax.plot(vtime, volt, dclr[i], linewidth = self.gui.linewidth)
-                  if i in [1,2,4]:
-                      ax1.plot(vtime, volt, dclr[i], linewidth = self.gui.linewidth)
-                  if not self.invertedax:
-                    ax.set_ylim(ax.get_ylim()[::-1])
-                    self.invertedax = True
-                  # ax.set_yticks([])
+    # volt_time = dvolt['vtime']
+    compartments = ['Soma','Tuft']
+    compartment_idxs = [4,1]
 
-                  ax.set_facecolor('w')
-                  if tstop != -1: ax.set_xlim((0,tstop))
-                  if i ==0: ax.set_title(ltextra)
-                  ax.set_xlabel('Time (ms)');
-                  ax.set_ylim((-100,60))
-                  ax.set_ylabel('Voltage (mV)')
+    for i in range(2):
+        volt = []
+        for gid in dvolt.keys():
+            if gid == 'vtime': continue
+            if dvolt[gid][0] == 'L5_pyramidal':
+                cell_volt = dvolt[gid][compartment_idxs[i]]
+                volt.append(cell_volt)
 
-      # sumSignal /= count
-      # ax1.plot(vtime,sumSignal)
+        volt = np.asarray(volt)
 
-      green_patch = mpatches.Patch(color='green', label='Apical tuft')
-      red_patch = mpatches.Patch(color='red', label='Apical 2')
-      black_patch = mpatches.Patch(color='black', label='Apical 1')
-      blue_patch = mpatches.Patch(color='blue', label='Soma')
-      yellow_patch = mpatches.Patch(color='yellow', label='Basal')
-      ax.legend(handles=[green_patch,red_patch,black_patch,blue_patch,yellow_patch])
+        if i==0:
+            weighted_volt = np.multiply(volt,np.tile(np.linspace(100,1,num=np.shape(volt)[1]),(100,1)))
+        volt = volt[np.flip(np.argsort(weighted_volt.sum(axis=1))),:]
 
-      self.figure.subplots_adjust(bottom=0.04, left=0.025, right=0.99, top=0.99, wspace=0.1, hspace=0.25)
+        imAx = fig.add_subplot(2,3,i+1)
+        lax = [imAx]
+        heatmap = imAx.imshow(volt,cmap='plasma',aspect='auto',extent=[-0,170,100,0],vmin=-80,vmax=20)
+        imAx.set_xlabel('Time (ms)')#,fontsize=16);
+        imAx.set_ylabel('Cells')#,fontsize=16);
+        imAx.set_title(compartments[i])#,fontsize=24)
 
-      return lax
+    cbar = plt.colorbar(heatmap, ax=imAx)
+    cbar.set_label('Voltage (mV)') #,fontsize=16)
+
+    return lax
+
+# Comment in for voltage trace plot
+  # def drawvolt (self, dvolt, fig, G, sz=8, ltextra=''):
+  #     count = 0
+  #     sumSignal = np.zeros(dvolt[1][1].shape)
+  #     for gid,it in dvolt.items():
+  #         # count = 0
+  #         ty = it[0]
+  #         if type(gid) != int: continue
+  #         if ty == "L5_pyramidal":
+  #             count += 1
+  #             if count != maxCount: continue
+  #             # if count not in [2,4]: continue
+  #             ax1 = fig.add_subplot(4,3,1)
+  #             if tstop != -1: ax1.set_xlim((0,tstop))
+  #             ax1.set_xlabel('Time (ms)');
+  #             # ax1.set_ylim(-8000,-2000)
+  #             # ax1.set_ylim(-100,60)
+  #             ax1.set_ylim(-80,60)
+  #             ax1.set_ylabel('mV')
+  #             for i in range(1,6):
+  #                 ax = fig.add_subplot(6,1,i+1)
+  #                 lax = [ax]
+  #                 vtime = dvolt['vtime']
+  #                 volt = it[i]
+  #                 if i == 1:
+  #                     sumSignal += volt
+  #                 ax.plot(vtime, volt, dclr[i], linewidth = self.gui.linewidth)
+  #                 if i in [1,2,4]:
+  #                     ax1.plot(vtime, volt, dclr[i], linewidth = self.gui.linewidth)
+  #                 if not self.invertedax:
+  #                   ax.set_ylim(ax.get_ylim()[::-1])
+  #                   self.invertedax = True
+  #                 # ax.set_yticks([])
+  #
+  #                 ax.set_facecolor('w')
+  #                 if tstop != -1: ax.set_xlim((0,tstop))
+  #                 if i ==0: ax.set_title(ltextra)
+  #                 ax.set_xlabel('Time (ms)');
+  #                 # ax.set_ylim((-100,60))
+  #                 ax.set_ylim(-80,60)
+  #                 ax.set_ylabel('Voltage (mV)')
+  #
+  #     # sumSignal /= count
+  #     # ax1.plot(vtime,sumSignal)
+  #
+  #     green_patch = mpatches.Patch(color='green', label='Apical tuft')
+  #     red_patch = mpatches.Patch(color='red', label='Apical 2')
+  #     black_patch = mpatches.Patch(color='black', label='Apical 1')
+  #     blue_patch = mpatches.Patch(color='blue', label='Soma')
+  #     yellow_patch = mpatches.Patch(color='yellow', label='Basal')
+  #     ax.legend(handles=[green_patch,red_patch,black_patch,blue_patch,yellow_patch])
+  #
+  #     # self.figure.subplots_adjust(bottom=0.04, left=0.025, right=0.99, top=0.99, wspace=0.1, hspace=0.25)
+  #     self.figure.subplots_adjust(bottom=0.04, left=0.1, right=0.99, top=0.99, wspace=0.05, hspace=0.365)
+  #
+  #
+  #     return lax
 
   def plot (self):
     if self.index == 0:

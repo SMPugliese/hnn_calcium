@@ -150,14 +150,16 @@ def drawrast (dspk, fig, G, sz=8):
         if haveEvokedDist: extinputs.plot_hist(ax,'evdist',0,bins,(0,tstop),color='g',hty='step')
         if haveOngoingDist: extinputs.plot_hist(ax,'dist',0,bins,(0,tstop),color='g')
         ax.invert_yaxis()
-        ax.set_ylabel('Distal Input')
+        # ax.set_ylabel('Distal Input')
+        ax.set_ylabel('Distal')
 
       if haveEvokedProx or haveOngoingProx:
         ax2 = fig.add_subplot(G[row:row+2,:]); row += 2
         lax.append(ax2)
         if haveEvokedProx: extinputs.plot_hist(ax2,'evprox',0,bins,(0,tstop),color='r',hty='step')
         if haveOngoingProx: extinputs.plot_hist(ax2,'prox',0,bins,(0,tstop),color='r')
-        ax2.set_ylabel('Proximal Input')
+        # ax2.set_ylabel('Proximal Input')
+        ax2.set_ylabel('Proximal')
 
       if PoissonInputs and len(dinput['pois']):
         axp = fig.add_subplot(G[row:row+2,:]); row += 2
@@ -175,7 +177,7 @@ def drawrast (dspk, fig, G, sz=8):
 
       ax.scatter(dspk[k][0],dspk[k][1],c=dspk[k][2],s=sz**2)
       ax.set_ylabel(k + ' ID')
-      white_patch = mpatches.Patch(color='white', label='L2/3 Basket')
+      white_patch = mpatches.Patch(color='black', label='L2/3 Basket')
       green_patch = mpatches.Patch(color='green', label='L2/3 Pyr')
       red_patch = mpatches.Patch(color='red', label='L5 Pyr')
       blue_patch = mpatches.Patch(color='blue', label='L5 Basket')
@@ -245,15 +247,19 @@ class SpikeCanvas (FigureCanvas):
 
     for ax in self.lax:
       # ax.set_facecolor('k')
-      ax.grid(True)
+      # ax.grid(True)
       if tstop != -1: ax.set_xlim((0,tstop))
+
+    for i in range(len(self.lax)-1):
+        self.lax[i].get_xaxis().set_visible(False)
 
     if idx == 0: self.lax[0].set_title('All Trials')
     else: self.lax[0].set_title('Trial '+str(self.index))
 
     self.lax[-1].set_xlabel('Time (ms)');
 
-    self.figure.subplots_adjust(bottom=0.0, left=0.06, right=1.0, top=0.97, wspace=0.1, hspace=0.09)
+    # self.figure.subplots_adjust(bottom=0.0, left=0.06, right=1.0, top=0.97, wspace=0.1, hspace=0.09)
+    self.figure.subplots_adjust(bottom=0.05, left=0.075, right=0.5, top=0.960, wspace=0.1, hspace=1)
 
     self.draw()
 

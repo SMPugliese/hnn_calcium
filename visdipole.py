@@ -37,7 +37,7 @@ for i in range(len(sys.argv)):
     if type(scalefctr)!=float and type(scalefctr)!=int: scalefctr=30e3
     tstop = paramrw.find_param(paramf,'tstop')
     ntrial = paramrw.quickgetprm(paramf,'N_trials',int)
-        
+
 basedir = os.path.join(dconf['datdir'],paramf.split(os.path.sep)[-1].split('.param')[0])
 
 ddat = {}
@@ -82,7 +82,7 @@ class DipoleCanvas (FigureCanvas):
     if len(ddat['dpltrials']) > 0: lpatch = [white_patch,gray_patch]
 
     yl = [1e9,-1e9]
-    
+
     for i in [2,3,1]:
       yl[0] = min(yl[0],ddat['dpl'][:,i].min())
       yl[1] = max(yl[1],ddat['dpl'][:,i].max())
@@ -110,11 +110,12 @@ class DipoleCanvas (FigureCanvas):
             ax.plot(dpltrial[:,0],dpltrial[:,i],color='gray',linewidth=lw)
 
       # average dipole (across trials)
-      if self.index == 0: ax.plot(ddat['dpl'][:,0],ddat['dpl'][:,i],'w',linewidth=self.gui.linewidth+2) 
+      if self.index == 0: ax.plot(ddat['dpl'][:,0],ddat['dpl'][:,i],'w',linewidth=self.gui.linewidth+2)
 
       ax.set_ylabel(r'(nAm $\times$ '+str(scalefctr)+')')
       if tstop != -1: ax.set_xlim((0,tstop))
-      ax.set_ylim(yl)
+      # ax.set_ylim(yl)
+      ax.set_ylim((-100,100))
 
       if i == 2 and len(ddat['dpltrials']) > 0: ax.legend(handles=lpatch)
 
@@ -133,4 +134,4 @@ class DipoleCanvas (FigureCanvas):
 if __name__ == '__main__':
   app = QApplication(sys.argv)
   ex = DataViewGUI(DipoleCanvas,paramf,ntrial,'Dipole Viewer')
-  sys.exit(app.exec_())  
+  sys.exit(app.exec_())

@@ -88,7 +88,7 @@ def str2bool (v): return v.lower() in ("true", "t", "1")
 def readconf (fn="hnn.cfg",nohomeout=False):
   config = ConfigParser()
   config.optionxform = str
-  
+
   with open(fn, 'r') as cfg_file:
     cfg_txt = os.path.expandvars(cfg_file.read())
 
@@ -119,7 +119,7 @@ def readconf (fn="hnn.cfg",nohomeout=False):
     if not config.has_section('tips'): return None
     ltips = config.options('tips')
     for i,prm in enumerate(ltips):
-      d[prm] = config.get('tips',prm).strip()      
+      d[prm] = config.get('tips',prm).strip()
 
   def readoptprm (d):
     dparams = OrderedDict()
@@ -129,7 +129,7 @@ def readconf (fn="hnn.cfg",nohomeout=False):
     #print 'params:', lprm
     for i,prm in enumerate(lprm):
       #print prm
-      s = config.get('params',prm)    
+      s = config.get('params',prm)
       sp = s.split()
       if len(sp) > 4:
         minval,maxval,origval,bounded,bestval = float(sp[0]),float(sp[1]),float(sp[2]),str2bool(sp[3]),float(sp[4])
@@ -162,7 +162,7 @@ def readconf (fn="hnn.cfg",nohomeout=False):
   d['dbase'] = dbase
   d['datdir'] = os.path.join(dbase,'data') # data output directory
   d['paramoutdir'] = os.path.join(dbase, 'param')
-  d['paramindir'] = confstr('paths','paramindir','param') # this depends on hnn install location  
+  d['paramindir'] = confstr('paths','paramindir','param') # this depends on hnn install location
   d['dataf'] = confstr('paths','dataf','')
 
   for k in ['datdir', 'paramindir', 'paramoutdir']: # need these directories
@@ -179,7 +179,8 @@ def readconf (fn="hnn.cfg",nohomeout=False):
   d['drawindivdpl'] = confint("draw","drawindivdpl",1)
   d['drawavgdpl'] = confint("draw","drawavgdpl",0)
   d['drawindivrast'] = confint("draw","drawindivrast",1)
-  d['fontsize'] = confint("draw","fontsize",0)
+  # d['fontsize'] = confint("draw","fontsize",0)
+  d['fontsize'] = confint("draw","fontsize",30)
 
   readtips(d) # read tooltips for parameters
 
@@ -201,4 +202,3 @@ nohomeout = False
 for i in range(len(sys.argv)):  # override homeout option through commandline flag
   if sys.argv[i] == '-nohomeout' or sys.argv[i] == 'nohomeout': nohomeout = True
 dconf = readconf(fcfg,nohomeout)
-

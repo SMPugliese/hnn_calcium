@@ -21,16 +21,15 @@ import pickle
 from conf import dconf
 from gutils import getmplDPI
 
-
 if dconf['fontsize'] > 0: plt.rcParams['font.size'] = dconf['fontsize']
 else: dconf['fontsize'] = 10
 
-# colors for the different compartments
-dclr = {1 : 'g',    # apical tuft
-        2 : 'r',    # apical 2
-        3 : 'k',    # apical 1
-        4 : 'b',    # soma
-        5 : 'y'}    # basal
+# # colors for the different compartments
+# dclr = {1 : 'g',    # apical tuft
+#         2 : 'r',    # apical 2
+#         3 : 'k',    # apical 1
+#         4 : 'b',    # soma
+#         5 : 'y'}    # basal
 
 ntrial = 1; tstop = -1; outparamf = caipath = paramf = '';
 
@@ -65,46 +64,73 @@ class CaiCanvas (FigureCanvas):
     self.plot()
 
   def drawcai (self, dcai, fig, G, sz=8, ltextra=''):
-    count = 0
-    for gid,it in dcai.items():
-        ty = it[0]
-        if type(gid) != int: continue
-        if ty == "L5_pyramidal":
-            count += 1
-            if count > maxCount: continue
-            # if count < 80: continue
-            for i in range(1,6):
-                ax = fig.add_subplot(5,1,i)
-                lax = [ax]
-                cai_time = dcai['cai_time']
-                cai = it[i]
-                ax.plot(cai_time, cai, dclr[i], linewidth = self.gui.linewidth)
-                # ax.ylim(0,0.2)
-                # ax.ylabel("Ca Concentration")
-                # ax.xlabel("Time (ms)")
-                if not self.invertedax:
-                  ax.set_ylim(ax.get_ylim()[::-1])
-                  self.invertedax = True
-                ax.set_yticks([])
+      # # with open(caipath, 'rb') as caiFile:
+      #     caiData = pickle.load(caiFile)
+      #     caiFile.close()
+      cai_time = dcai['cai_time']
+      ap2_cai = []
+      for gid in dcai.keys():
+          if gid == 'cai_time': continue
+          cell_cai = dcai[gid][1]
+          ap2_cai.append(cell_cai)
 
-                ax.set_facecolor('w')
-                # ax.grid(True)
-                if tstop != -1: ax.set_xlim((0,tstop))
-                if i ==0: ax.set_title(ltextra)
-                ax.set_xlabel('Time (ms)');
-                ax.set_ylim((0,0.5))
-                ax.set_ylabel('Ca concentration')
+      ap2_cai = np.asarray(ap2_cai)
+      weighted_cai = np.multiply(ap2_cai,np.tile(np.linspace(100,1,num=np.shape(ap2_cai)[1]),(100,1)))
+      ap2_cai = ap2_cai[np.flip(np.argsort(weighted_cai.sum(axis=1))),:]
 
-    green_patch = mpatches.Patch(color='green', label='Apical tuft')
-    red_patch = mpatches.Patch(color='red', label='Apical 2')
-    black_patch = mpatches.Patch(color='black', label='Apical 1')
-    blue_patch = mpatches.Patch(color='blue', label='Soma')
-    yellow_patch = mpatches.Patch(color='yellow', label='Basal')
-    ax.legend(handles=[green_patch,red_patch,black_patch,blue_patch,yellow_patch])
+      imAx = fig.add_subplot(2,2,1)
+      lax = [imAx]
+      heatmap = imAx.imshow(ap2_cai,cmap='plasma',aspect='auto',extent=[0,tstop,100,0],vmin=0,vmax=0.3)
+      cbar = plt.colorbar(heatmap, ax=imAx)
+      cbar.set_label('Ca concenration (mM)')
+      imAx.set_xlabel('Time (ms)')
+      imAx.set_ylabel('Cells')
 
-    self.figure.subplots_adjust(bottom=0.04, left=0.025, right=0.99, top=0.99, wspace=0.1, hspace=0.25)
+      # ax.plot(cai_time,dcai[267][1],'k')
+      # print(dcai[172])
+      # plt.plot(dcai['cai_time'],dcai[172])
+      # im = ax.imshow(dcai[2])
 
-    return lax
+
+    # count = 0
+    # for gid,it in dcai.items():
+    #     ty = it[0]
+    #     if type(gid) != int: continue
+    #     if ty == "L5_pyramidal":
+    #         count += 1
+    #         if count > maxCount: continue
+    #         # if count < 80: continue
+    #         for i in range(1,6):
+    #             ax = fig.add_subplot(5,1,i)
+    #             lax = [ax]
+    #             cai_time = dcai['cai_time']
+    #             cai = it[i]
+    #             ax.plot(cai_time, cai, dclr[i], linewidth = self.gui.linewidth)
+    #             # ax.ylim(0,0.2)
+    #             # ax.ylabel("Ca Concentration")
+    #             # ax.xlabel("Time (ms)")
+    #             if not self.invertedax:
+    #               ax.set_ylim(ax.get_ylim()[::-1])
+    #               self.invertedax = True
+    #             ax.set_yticks([])
+    #
+    #             ax.set_facecolor('w')
+    #             # ax.grid(True)
+    #             if tstop != -1: ax.set_xlim((0,tstop))
+    #             if i ==0: ax.set_title(ltextra)
+    #             ax.set_xlabel('Time (ms)');
+    #             ax.set_ylim((0,0.5))
+    #             ax.set_ylabel('Ca concentration')
+    #
+    # green_patch = mpatches.Patch(color='green', label='Apical tuft')
+    # red_patch = mpatches.Patch(color='red', label='Apical 2')
+    # black_patch = mpatches.Patch(color='black', label='Apical 1')
+    # blue_patch = mpatches.Patch(color='blue', label='Soma')
+    # yellow_patch = mpatches.Patch(color='yellow', label='Basal')
+    # ax.legend(handles=[green_patch,red_patch,black_patch,blue_patch,yellow_patch])
+
+    # self.figure.subplots_adjust(bottom=0.04, left=0.025, right=0.99, top=0.99, wspace=0.1, hspace=0.25)
+      return lax
 
   def plot (self):
     if self.index == 0:

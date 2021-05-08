@@ -522,7 +522,11 @@ class SIMCanvas (FigureCanvas):
         ax.set_xlabel('Time (ms)',fontsize=dconf['fontsize'])
     except:
       print('ERR: in plotsimdat')
-    self.figure.subplots_adjust(left=left,right=0.99,bottom=bottom,top=0.99,hspace=0.1,wspace=0.1) # reduce padding
+    for i in range(len(self.lax)-1):
+        self.lax[i].get_xaxis().set_visible(False)
+
+    # self.figure.subplots_adjust(left=left,right=0.99,bottom=bottom,top=0.99,hspace=0.1,wspace=0.1) # reduce padding
+    self.figure.subplots_adjust(left=0.2,right=0.96,bottom=0.05,top=0.99,hspace=0.1,wspace=0.1) # reduce padding
 
   def plot (self):
     self.plotsimdat()

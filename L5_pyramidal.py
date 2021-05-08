@@ -436,8 +436,8 @@ class L5Pyr(Pyr):
 
 
     def __biophys_dends(self):
-        # self.classic_HNN_dends()
-        self.updated_HNN_dends()
+        self.classic_HNN_dends()
+        # self.updated_HNN_dends()
 
     def create_ca_rxd(self):
         cainf = 100e-6
